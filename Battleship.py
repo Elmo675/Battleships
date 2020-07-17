@@ -21,7 +21,7 @@ MARGIN = 2
 DIFFRENCE = WIDTH-MARGIN
 
 # Size of game field
-SIZE = 10
+SIZE = 12
 
 # Exit module 
 game_over = False
@@ -103,7 +103,7 @@ def random_ship_settlement(table,ship_table):
             return result
         elif ship_table[position] == 0:
             position +=1
-        elif counter == 500:
+        elif counter == 10000:
             return [[-1]]
         else:
             row       = random.randint(0,SIZE -1) #starting position 
@@ -129,9 +129,9 @@ def random_ship_settlement(table,ship_table):
                         counter +=1
                         continue
                     else:
-                        result[row][column] = 1 #add ship begining  
-                        for i in range(position): #add rest of ship
-                            result[row-i-1][column] = 1
+                        #result[row][column] = 1 #add ship begining  
+                        for i in range(position+1): #add rest of ship
+                            result[row-i][column] = 1
                         counter = 0
                         ship_table[position] -= 1#success
 
@@ -143,9 +143,9 @@ def random_ship_settlement(table,ship_table):
                         counter +=1
                         continue
                     else:
-                        result[row][column] = 1 #add ship begining  
-                        for i in range(position): #add rest of ship
-                            result[row][column+1+i] = 1
+                        #result[row][column] = 1 #add ship begining  
+                        for i in range(position+1): #add rest of ship
+                            result[row][column+i] = 1
                         counter = 0
                         ship_table[position] -= 1#success
 
@@ -157,23 +157,23 @@ def random_ship_settlement(table,ship_table):
                         counter +=1
                         continue
                     else:
-                        result[row][column] = 1 #add ship begining  
-                        for i in range(position): #add rest of ship
-                            result[row+1+i][column] = 1
+                        #result[row][column] = 1 #add ship begining  
+                        for i in range(position+1): #add rest of ship
+                            result[row+i][column] = 1
                         counter = 0
                         ship_table[position] -= 1#sucsess
 
                 elif direction == 3: #left
-                    if row - position <0: # out of board cant add ship 
+                    if column - position <0: # out of board cant add ship 
                         counter +=1
                         continue
                     elif not is_ship_allowed(row,column,position+1,direction,result) : # stick to other ship cant add a new ship
                         counter +=1
                         continue
                     else:
-                        result[row][column] = 1 #add ship begining  
-                        for i in range(position): #add rest of ship
-                            result[row][column-1-i] = 1
+                        #result[row][column] = 1 #add ship begining  
+                        for i in range(position+1): #add rest of ship
+                            result[row][column-i] = 1
                         counter = 0
                         ship_table[position] -= 1#success
 
@@ -219,13 +219,24 @@ def is_ship_allowed(row,column,lenght,direction,table):
 
     
 ## TEST SCENARIOS
-#player_side[1][4] = 2
-#player_side[1][5] = 1
+##player_side[1][-1] = 1
+##player_side[1][0] = 1
+##player_side[1][1] = 1
+##player_side[1][2] = 1
+##player_side[1][3] = 1
+##player_side[1][4] = 2
 
-player_side = random_ship_settlement(player_side,[30,0,0,0,0,0,0])
-if player_side[0][0]==-1:
-    print("niestety")
-    time.sleep(10)
+
+end = False
+backup = player_side
+while not end: 
+    player_side = random_ship_settlement(player_side,[5,4,3,2,1,0,0])
+    if player_side[0][0]==-1:
+        print("niestety")
+        player_side = backup
+    else:
+        end = True
+        
 ##MAIN LOOP
 
 while not game_over:
@@ -268,6 +279,7 @@ while not game_over:
         for column in range(SIZE):
             if (row+2)*WIDTH <=x and ((row+2)*WIDTH+DIFFRENCE) >=x and (column+2)*WIDTH <=y and ((column+2)*WIDTH+DIFFRENCE) >=y:
                 pygame.draw.rect(dis,green,[(row+2)*WIDTH,(column+2)*WIDTH,DIFFRENCE,DIFFRENCE])
+                print(row,column)
                 break
 
     # Update screen 
