@@ -10,6 +10,7 @@ black = (0, 0, 0)
 red = (255, 0, 0)
 blue = (176,224,230)
 green = (24,110,90)
+dark_blue = (255,255,51)
 
 # Size of rectangle
 WIDTH = 30
@@ -21,7 +22,10 @@ MARGIN = 2
 DIFFRENCE = WIDTH-MARGIN
 
 # Size of game field
-SIZE = 12
+SIZE = 15
+
+# Game xpeed
+SPEED = 1
 
 # Exit module 
 game_over = False
@@ -61,14 +65,61 @@ clock = pygame.time.Clock()
 
 # Moving function
 def move(player_side,enemy_side,x,y):
-    pass
+    shotX = -1
+    shotY = -1
+    for row in range(SIZE):
+        for column in range(SIZE):
+            if (row+2)*WIDTH <=x and ((row+2)*WIDTH+DIFFRENCE) >=x and (column+2)*WIDTH <=y and ((column+2)*WIDTH+DIFFRENCE) >=y:
+                shotX=row
+                shotY=column
+                break
+    if shotX == -1 or shotY == -1:
+        message("select a field to shoot")
+        return
+    if enemy_side[shotX][shotY] == 1:
+        enemy_side[shotX][shotY] = 2
+        message("HIT")
+        return
+    elif enemy_side[shotX][shotY] == 2:
+        message("YOS SHOT THIS FIELD BEFORE, TRY HARDER")
+        return
+    elif enemy_side[shotX][shotY] == 0:
+        enemy_side[shotX][shotY] = 3
+        message("MISS")
+        return
+
+# AI
+    
+def beginer_PC(player_side,enemy_side):
+    beginer_x = random.randrange(SIZE -1)
+    beginer_y = random.randrange(SIZE -1)
+    if beginer_x == -1 or beginer_y == -1:
+        message("ERROR")
+        return
+    if player_side[beginer_x][beginer_y] == 1:
+        player_side[beginer_x][beginer_y] = 2
+        message("YOU HAVE BEEN HITED")
+        return
+    elif player_side[beginer_x][beginer_y] == 2:
+        message("ENEMY MISSED STUPIDLY")
+        return
+    elif player_side[beginer_x][beginer_y] == 0:
+        player_side[beginer_x][beginer_y] = 3
+        message("ENEMY MISS")
+        return
+
+
+
+
+
 
 # Message function 
 def message(msg):
+    dis.fill(white)
     mesg = mesg_style.render(msg, True, red)
     dis.blit(mesg, [SIZE*35, SIZE*40])
     pygame.display.update()
-    time.sleep(1)
+    time.sleep(SPEED)
     
 # Legend drawning function
 def legend(side):
@@ -83,6 +134,7 @@ def legend(side):
         legend_left=legend_style.render(str(number+1),True,black)
         dis.blit(legend_left,[WIDTH+delta,WIDTH*number+2*WIDTH])
 
+
 def random_ship_settlement(table,ship_table):
     ## ships can not stick to each other ( but they can diagonally)
     ## ship table is a table which presents the number of ships
@@ -95,106 +147,71 @@ def random_ship_settlement(table,ship_table):
     ## one   5 field ships
     ## none  6 field ships
     ## none  7 field ships
-    counter = 0 # if after 500 trys can not place new ship, start from begining
-    position = 0 # position in ship_table
-    result = table
+    counter = 0 # if after 1000 trys can not place new ship, exit with -1
+    position = 6 # position in ship_table starting from the end of table 
     while True:
-        if position == 7: # not longer ships than 7 field ship
-            return result
+        if position == -1: # nothing more to check
+            return table  # success
         elif ship_table[position] == 0:
-            position +=1
-        elif counter == 10000:
-            return [[-1]]
+            position -=1   # proceed
+        elif counter == 1000:
+            return [[-1]]  # fail
         else:
-            row       = random.randint(0,SIZE -1) #starting position 
-            column    = random.randint(0,SIZE -1)
+            row       = random.randrange(SIZE -1) # starting position 
+            column    = random.randrange(SIZE -1)
             direction = random.randint(0,3)
-            if result[row][column] == 1: #there is a ship in this coordinates
+            if row - position <0 or row + position >= SIZE  or column - position < 0 or column + position >= SIZE: # out of board cant add ship 
                 counter +=1
                 continue
-            elif result[row][column] == 0 and position == 0 :
-                if not is_ship_allowed(row,column,position+1,direction,result) : # stick to other ship cant add a new ship
+            if table[row][column] == 1: # there is a ship in this coordinates
+                counter +=1
+                continue
+
+            if table[row][column] == 0 and position == 0 :
+                if not is_ship_allowed(row,column,position+1,direction,table) : # stick to other ship cant add a new ship
                     counter +=1
                     continue
                 else:
-                    result[row][column] = 1
+                    table[row][column] = 1
                     counter = 0 #ship added, counter reseted
-                    ship_table[position] -= 1#success
+                    ship_table[position] -= 1# success
             else:
-                if   direction == 0: #top
-                    if row - position <0: # out of board cant add ship 
-                        counter +=1
-                        continue
-                    elif not is_ship_allowed(row,column,position+1,direction,result): # stick to other ship cant add a new ship
-                        counter +=1
-                        continue
-                    else:
-                        #result[row][column] = 1 #add ship begining  
-                        for i in range(position+1): #add rest of ship
-                            result[row-i][column] = 1
-                        counter = 0
-                        ship_table[position] -= 1#success
+                if not is_ship_allowed(row,column,position+1,direction,table): # stick to other ship cant add a new ship
+                    counter +=1
+                    continue
+                else:
+                    for i in range(position+1): # add  ship
+                        if direction == 0: # up
+                            table[row-i][column] = 1
+                        elif direction == 1: # right
+                            table[row][column+i] = 1
+                        elif direction == 2: # down
+                            table[row+i][column] = 1
+                        elif direction == 3: # left
+                            table[row][column-i] = 1
+                    counter = 0
+                    ship_table[position] -= 1# success
 
-                elif direction == 1: #right
-                    if column + position >=SIZE: # out of board cant add ship 
-                        counter +=1
-                        continue
-                    elif not is_ship_allowed(row,column,position+1,direction,result): # stick to other ship cant add a new ship
-                        counter +=1
-                        continue
-                    else:
-                        #result[row][column] = 1 #add ship begining  
-                        for i in range(position+1): #add rest of ship
-                            result[row][column+i] = 1
-                        counter = 0
-                        ship_table[position] -= 1#success
-
-                elif direction == 2: #down
-                    if row + position >=SIZE: # out of board cant add ship 
-                        counter +=1
-                        continue
-                    elif not is_ship_allowed(row,column,position+1,direction,result): # stick to other ship cant add a new ship
-                        counter +=1
-                        continue
-                    else:
-                        #result[row][column] = 1 #add ship begining  
-                        for i in range(position+1): #add rest of ship
-                            result[row+i][column] = 1
-                        counter = 0
-                        ship_table[position] -= 1#sucsess
-
-                elif direction == 3: #left
-                    if column - position <0: # out of board cant add ship 
-                        counter +=1
-                        continue
-                    elif not is_ship_allowed(row,column,position+1,direction,result) : # stick to other ship cant add a new ship
-                        counter +=1
-                        continue
-                    else:
-                        #result[row][column] = 1 #add ship begining  
-                        for i in range(position+1): #add rest of ship
-                            result[row][column-i] = 1
-                        counter = 0
-                        ship_table[position] -= 1#success
 
 def is_ship_allowed(row,column,lenght,direction,table):
     ##check if ship is allowed to be placed
     ##that means ship is not connected with other ship on table
-    if direction == 0:
+    if direction == 0: #ship created toward up
         deltaY = -1
         deltaX = 0
-    elif direction == 1:
+    elif direction == 1: #ship created toward right
         deltaY = 0
         deltaX = 1      
-    elif direction == 2:
+    elif direction == 2: #ship created toward down
         deltaY = 1
         deltaX = 0       
-    elif direction == 3:
+    elif direction == 3: #ship created toward left
         deltaY = 0
         deltaX = -1       
-    for iteration in range(lenght):
-        try:
-            if table[row-1][column] == 1:
+    for iteration in range(lenght): 
+        # check if there is a ship stick to position in 4 directions
+        try:       
+            if table[row-1][column] == 1 and row != 0: # for -1 element 
                 return False
         except IndexError:
             pass
@@ -204,7 +221,7 @@ def is_ship_allowed(row,column,lenght,direction,table):
         except IndexError:
             pass
         try:
-            if table[row][column-1] == 1:
+            if table[row][column-1] == 1 and column != 0: # for -1 element
                 return False
         except IndexError:
             pass
@@ -219,6 +236,7 @@ def is_ship_allowed(row,column,lenght,direction,table):
 
     
 ## TEST SCENARIOS
+
 ##player_side[1][-1] = 1
 ##player_side[1][0] = 1
 ##player_side[1][1] = 1
@@ -229,13 +247,28 @@ def is_ship_allowed(row,column,lenght,direction,table):
 
 end = False
 backup = player_side
-while not end: 
-    player_side = random_ship_settlement(player_side,[5,4,3,2,1,0,0])
+backup2 = enemy_side
+counter = 0
+while not end:
+    try:
+        player_side = random_ship_settlement(player_side,[0,4,3,2,1,1,0])
+        enemy_side  = random_ship_settlement(enemy_side,[0,4,3,2,1,1,0])
+    except IndexError :
+        pass
     if player_side[0][0]==-1:
-        print("niestety")
+        print("not good")
         player_side = backup
+    elif enemy_side[0][0]==-1:
+        print("not good enemy")
+        enemy_side = backup2
     else:
         end = True
+    counter +=1
+    if counter ==1000:break
+if not end:
+    quit()
+
+
         
 ##MAIN LOOP
 
@@ -248,7 +281,8 @@ while not game_over:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE: # if space is clicked then perform a move
                 move(player_side,enemy_side,x,y)
-                message("HIT")
+                beginer_PC(player_side,enemy_side)
+                #message("HIT")
     # Fill background white
     dis.fill(white)
 
@@ -257,10 +291,14 @@ while not game_over:
     for row in range(SIZE):
         for column in range(SIZE):
             color = blue
-            if enemy_side[row][column]   == 1:
-                color = black
-            elif enemy_side[row][column] == 2:
+            if enemy_side[row][column] == 2:
                 color = red
+            ############            
+##            elif enemy_side[row][column]   == 1:
+##                color = black
+            ############
+            elif enemy_side[row][column] == 3:
+                color = dark_blue
             pygame.draw.rect(dis, color, [(row+2)*WIDTH,(column+2)*WIDTH,DIFFRENCE,DIFFRENCE])  
 
     # Player side drawning
@@ -272,6 +310,8 @@ while not game_over:
                 color = black
             elif player_side[row][column] == 2:
                 color = red
+            elif player_side[row][column] == 3:
+                color = dark_blue
             pygame.draw.rect(dis, color, [(row+SIZE+4)*WIDTH,(column+2)*WIDTH,DIFFRENCE,DIFFRENCE])
 
     # Drawning player cursor position
