@@ -110,7 +110,20 @@ def beginer_PC(player_side,enemy_side):
         message("ENEMY MISS")
         return True
 
-
+def advenced_PC(player_side,enemy_side):
+    while True:
+        advenced_x = random.randrange(SIZE -1)
+        advenced_y = random.randrange(SIZE -1)
+        if player_side[advenced_x][advenced_y] == 1:
+            player_side[advenced_x][advenced_y] = 2
+            message("YOU HAVE BEEN HITED")
+            return True
+        elif player_side[advenced_x][advenced_y] == 2 or player_side[advenced_x][advenced_y] == 3:
+            continue
+        elif player_side[advenced_x][advenced_y] == 0:
+            player_side[advenced_x][advenced_y] = 3
+            message("ENEMY MISS")
+            return True
 
 
 
@@ -290,7 +303,7 @@ while not game_over:
             if event.key == pygame.K_SPACE: # if space is clicked then perform a move
                 if move(player_side,enemy_side,x,y)   == False: # if player did not selected the field, do not allow computer to move
                     continue
-                if beginer_PC(player_side,enemy_side) == False:
+                if advenced_PC(player_side,enemy_side) == False:
                     print("i dont know what happened")
                     break
                 #reset cursor position
