@@ -15,6 +15,9 @@ yellow = (255,255,51)
 # Size of rectangle
 WIDTH = 30
 
+
+
+
 # Margin 
 MARGIN = 2
 
@@ -22,13 +25,21 @@ MARGIN = 2
 DIFFRENCE = WIDTH-MARGIN
 
 # Size of game field
-SIZE = 10
+SIZE = 6
 
 # Game xpeed
-SPEED = 0.3
+SPEED = 1
 
-# Exit module 
-game_over = False
+# Game mode
+# IF MODE == 1 : Creating game field
+# If MODE == 2 : Play the game
+MODE = 1
+
+# Ship number array
+SHIPS = [0,0,0,1,0,0,0]
+# Exit modules 
+GAME_OVER = False
+ACCEPT_EXIT = False
 
 #Polish alphabet
 ALPHABET = "ABCDEFGHIJKLMNOPRSTUWYZ"
@@ -48,11 +59,11 @@ for row in range(SIZE):
         enemy_side[row].append(0)
 
 # Initialize display
-dis = pygame.display.set_mode((SIZE*90, SIZE*50))
+dis = pygame.display.set_mode((SIZE*95, SIZE*55))
 pygame.display.set_caption('Battleship')
 
 # Initialize font style
-mesg_style   = pygame.font.SysFont(None, 50)
+mesg_style   = pygame.font.SysFont(None, 40)
 legend_style = pygame.font.SysFont("comicsansms", 15)
 
 # Initialize cursor position
@@ -138,12 +149,12 @@ def advenced_PC(player_side,enemy_side):
 
 
 # Message function 
-def message(msg):
+def message(msg, mode = 0):
     dis.fill(white)
     mesg = mesg_style.render(msg, True, red)
-    dis.blit(mesg, [SIZE*30, SIZE*40])
+    dis.blit(mesg, [SIZE*10, SIZE*40])
     pygame.display.update()
-    time.sleep(SPEED)
+    if mode == 0 :time.sleep(SPEED)
     
 # Legend drawning function
 def legend(side):
@@ -181,8 +192,8 @@ def random_ship_settlement(table,ship_table):
         elif counter == 1000:
             return [[-1]]  # fail
         else:
-            row       = random.randrange(SIZE ) # starting position 
-            column    = random.randrange(SIZE )
+            row       = random.randrange(0,SIZE-1 ) # starting position 
+            column    = random.randrange(0,SIZE-1 )
             direction = random.randint(0,3)
             
             if table[row][column] == 1: # there is a ship in this coordinates
@@ -303,21 +314,15 @@ end = False
 counter = 0
 while not end:
     try:
-        player_side = random_ship_settlement(player_side,[0,0,0,0,0,0,5])
-        enemy_side  = random_ship_settlement(enemy_side,[0,0,0,0,0,0,5])
+        enemy_side  = random_ship_settlement(enemy_side,list(SHIPS))
     except IndexError :
         pass
-    if player_side[0][0] == -1 or enemy_side[0][0] == -1: #fail, initialize again
-        player_side = []
+    if enemy_side[0][0] == -1: #fail, initialize again
         enemy_side  = []
         print("NOT GOOD")
         for row in range(SIZE):
-            # Add an empty array that will hold each cell
-            # in this row
-            player_side.append([])
             enemy_side.append([])
             for column in range(SIZE):
-                player_side[row].append(0)
                 enemy_side[row].append(0)
     else:
         end = True
@@ -330,22 +335,40 @@ if not end:
         
 ##MAIN LOOP
 
-while not game_over:
+while not GAME_OVER:
     for event in pygame.event.get():
         if event.type == pygame.QUIT: #exit if x clicked
-            game_over = True
+            GAME_OVER = True
         if event.type == pygame.MOUSEBUTTONDOWN: # get mouse position
             x,y=pygame.mouse.get_pos()
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE: # if space is clicked then perform a move
-                if move(player_side,enemy_side,x,y)   == False: # if player did not selected the field, do not allow computer to move
-                    continue
-                if advenced_PC(player_side,enemy_side) == False:
-                    print("i dont know what happened")
-                    break
-                #reset cursor position
-                x=0
-                y=0
+                if MODE == 2:
+                    if move(player_side,enemy_side,x,y)   == False: # if player did not selected the field, do not allow computer to move
+                        continue
+                    if advenced_PC(player_side,enemy_side) == False:
+                        print("i dont know what happened")
+                        break
+                    #reset cursor position
+                    x=0
+                    y=0
+                if MODE == 1:
+                    #TODO
+                    None
+            if event.key == pygame.K_ESCAPE: # if escape is clicked then end the game after confirm
+                ACCEPT_EXIT = False
+                while not ACCEPT_EXIT:
+                    message("Press y to exit the game",1)
+                    for event in pygame.event.get():
+                        if event.type == pygame.QUIT: #exit if x clicked
+                            GAME_OVER = True
+                            ACCEPT_EXIT = True
+                        if event.type == pygame.KEYDOWN:
+                            if event.key == pygame.K_y:
+                                GAME_OVER = True
+                                ACCEPT_EXIT = True
+                            else:
+                                ACCEPT_EXIT = True
 
     # Fill background white
     dis.fill(white)
@@ -379,13 +402,37 @@ while not game_over:
             pygame.draw.rect(dis, color, [(row+SIZE+4)*WIDTH,(column+2)*WIDTH,DIFFRENCE,DIFFRENCE])
 
     # Drawning player cursor position
-    for row in range(SIZE):
-        for column in range(SIZE):
-            if (row+2)*WIDTH <x and (row+3)*WIDTH >=x and (column+2)*WIDTH <y and (column+3)*WIDTH >=y:
-                pygame.draw.rect(dis,green,[(row+2)*WIDTH,(column+2)*WIDTH,DIFFRENCE,DIFFRENCE])
-                print(row,column)
+    if MODE == 2:
+        for row in range(SIZE):
+            for column in range(SIZE):
+                if (row+2)*WIDTH <x and (row+3)*WIDTH >=x and (column+2)*WIDTH <y and (column+3)*WIDTH >=y:
+                    pygame.draw.rect(dis,green,[(row+2)*WIDTH,(column+2)*WIDTH,DIFFRENCE,DIFFRENCE])
+                    print(row,column)
+                    break
+    if MODE == 1: 
+        for row in range(SIZE):
+            for column in range(SIZE):
+                if (row+SIZE+4)*WIDTH <x and (row+SIZE+5)*WIDTH >=x and (column+2)*WIDTH <y and (column+3)*WIDTH >=y:
+                    pygame.draw.rect(dis,green,[(row+SIZE+4)*WIDTH,(column+2)*WIDTH,DIFFRENCE,DIFFRENCE])
+                    print(row,column)
+                    break
+    # Drawning info about ship creation
+    if MODE == 1:
+        lenght = 1
+        for element in list(SHIPS):
+            if element == 0:
+                lenght +=1
+                continue
+            else:
                 break
-
+        if lenght == 8:
+            text = "No more Ships to Draw"
+        else:
+            text = "You are drawning " + str(lenght) + " field long ship" 
+        info = legend_style.render(text,True,black)
+        dis.blit(info, [WIDTH*SIZE, WIDTH* (SIZE + 2)])
+    # Draw ship creation buttons ( Restart all, Restart this ship, Place ship, Play (only avialiable when ship creation is done is done))
+        #LATER TO DOOO
     # Update screen 
     pygame.display.update()
     clock.tick(30)
