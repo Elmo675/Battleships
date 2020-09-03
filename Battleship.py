@@ -80,7 +80,10 @@ def move(player_side,enemy_side,x,y):
         return False
     if enemy_side[shotX][shotY] == 1:
         enemy_side[shotX][shotY] = 2
-        message("HIT")
+        if  not is_ship_drowned(shotX,shotY,enemy_side):
+            message("HIT")
+        else:
+            message("HIT AND KILL")
         return True
     elif enemy_side[shotX][shotY] == 2 or enemy_side[shotX][shotY] == 3 :
         message("YOU SHOOT THIS FIELD BEFORE")
@@ -93,14 +96,17 @@ def move(player_side,enemy_side,x,y):
 # AI
     
 def beginer_PC(player_side,enemy_side):
-    beginer_x = random.randrange(SIZE -1)
-    beginer_y = random.randrange(SIZE -1)
+    beginer_x = random.randrange(SIZE )
+    beginer_y = random.randrange(SIZE )
     if beginer_x == -1 or beginer_y == -1:
         message("ERROR")
         return False
     if player_side[beginer_x][beginer_y] == 1:
         player_side[beginer_x][beginer_y] = 2
-        message("YOU HAVE BEEN HITED")
+        if  not is_ship_drowned(beginer_x,beginer_y,player_side):
+            message("ENEMY HITED YOU")
+        else:
+            message("YOU HAVE LOST A SHIP")
         return True
     elif player_side[beginer_x][beginer_y] == 2 or player_side[beginer_x][beginer_y] == 3:
         message("ENEMY MISSED STUPIDLY")
@@ -112,11 +118,14 @@ def beginer_PC(player_side,enemy_side):
 
 def advenced_PC(player_side,enemy_side):
     while True:
-        advenced_x = random.randrange(SIZE -1)
-        advenced_y = random.randrange(SIZE -1)
+        advenced_x = random.randrange(SIZE)
+        advenced_y = random.randrange(SIZE)
         if player_side[advenced_x][advenced_y] == 1:
             player_side[advenced_x][advenced_y] = 2
-            message("YOU HAVE BEEN HITED")
+            if  not is_ship_drowned(advenced_x,advenced_y,player_side):
+                message("ENEMY HITED YOU")
+            else:
+                message("YOU HAVE LOST A SHIP")
             return True
         elif player_side[advenced_x][advenced_y] == 2 or player_side[advenced_x][advenced_y] == 3:
             continue
@@ -172,8 +181,8 @@ def random_ship_settlement(table,ship_table):
         elif counter == 1000:
             return [[-1]]  # fail
         else:
-            row       = random.randrange(SIZE -1) # starting position 
-            column    = random.randrange(SIZE -1)
+            row       = random.randrange(SIZE ) # starting position 
+            column    = random.randrange(SIZE )
             direction = random.randint(0,3)
             
             if table[row][column] == 1: # there is a ship in this coordinates
@@ -251,6 +260,34 @@ def is_ship_allowed(row,column,lenght,direction,table):
         column = column+deltaX
     return True
 
+def is_ship_drowned(row,column,table):
+    for iterator in range(1,SIZE):
+        if row - iterator <0: break
+        if table[row - iterator][column] == 1:
+            return False
+        if table[row - iterator][column] == 0 or table[row - iterator][column]  == 3:
+            break
+    for iterator in range(1,SIZE):
+        if row+iterator >= SIZE: break
+        if table[row + iterator][column] == 1:
+            return False
+        if table[row + iterator][column] == 0 or table[row + iterator][column]  == 3:
+            break
+    for iterator in range(1,SIZE):
+        if column - iterator <0: break
+        if table[row][column - iterator] == 1:
+            return False
+        if table[row][column - iterator] == 0 or table[row ][column - iterator]  == 3:
+            break
+    for iterator in range(1,SIZE):
+        if column + iterator >= SIZE:  break
+        if table[row][column + iterator] == 1:
+            return False
+        if table[row][column + iterator] == 0 or table[row ][column + iterator]  == 3:
+            break
+    return True
+
+        
     
 ## TEST SCENARIOS
 
@@ -321,8 +358,8 @@ while not game_over:
             if enemy_side[row][column] == 2:
                 color = red
             ############            
-##            elif enemy_side[row][column]   == 1:
-##                color = black
+            elif enemy_side[row][column]   == 1:
+                color = black
             ############
             elif enemy_side[row][column] == 3:
                 color = yellow
