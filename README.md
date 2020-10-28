@@ -24,7 +24,9 @@ DO NOT CREATE TOO BIG GAME FIELD AS IT WILL BE UNPLAYABLE !!! :warning::collisio
 
 The lower is the variable speed the faster is the game !!! :bulb:
 
-DO NOT TRY TO CREATE TOO MUCH SHIPS AS IT IS IMPOSIBLE AND GAME WON'T START !!! :rage2:
+DO NOT TRY TO CREATE TOO MUCH SHIPS AS IT IS IMPOSIBLE AND GAME WON'T START !!! :x::x::x:
 
 
-MORE CHANGES COOMING SOON !!! :rocket: :rocket:
+
+
+MORE CHANGES COOMING SOON !!! :rocket: :rocket: :new_moon:
