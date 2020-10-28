@@ -24,7 +24,18 @@ DIFFRENCE = WIDTH-MARGIN
 # Size of game field
 SIZE = 10
 
-# Game xpeed
+# Number of ships
+## SHIPS = [0,4,3,2,1,1,1] means:
+## none  1 field ships
+## four  2 field ships
+## three 3 field ships
+## two   4 field ships
+## one   5 field ships
+## one   6 field ships
+## one   7 field ships
+SHIPS = [0,4,3,2,1,1,1]
+
+# Game speed
 SPEED = 0.3
 
 # Exit module 
@@ -162,15 +173,6 @@ def legend(side):
 def random_ship_settlement(table,ship_table):
     ## ships can not stick to each other ( but they can diagonally)
     ## ship table is a table which presents the number of ships
-    ## for example:
-    ## ship_table = [0,4,3,2,1,0,0] means:
-    ## none  1 field ships
-    ## four  2 field ships
-    ## three 3 field ships
-    ## two   4 field ships
-    ## one   5 field ships
-    ## none  6 field ships
-    ## none  7 field ships
     counter = 0 # if after 1000 trys can not place new ship, exit with -1
     position = 6 # position in ship_table starting from the end of table 
     while True:
@@ -303,8 +305,8 @@ end = False
 counter = 0
 while not end:
     try:
-        player_side = random_ship_settlement(player_side,[0,0,0,0,0,0,5])
-        enemy_side  = random_ship_settlement(enemy_side,[0,0,0,0,0,0,5])
+        player_side = random_ship_settlement(player_side,list(SHIPS))
+        enemy_side  = random_ship_settlement(enemy_side,list(SHIPS))
     except IndexError :
         pass
     if player_side[0][0] == -1 or enemy_side[0][0] == -1: #fail, initialize again
@@ -358,8 +360,8 @@ while not game_over:
             if enemy_side[row][column] == 2:
                 color = red
             ############            
-            elif enemy_side[row][column]   == 1:
-                color = black
+##            elif enemy_side[row][column]   == 1:
+##                color = black
             ############
             elif enemy_side[row][column] == 3:
                 color = yellow
